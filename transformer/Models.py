@@ -14,8 +14,17 @@ def get_subsequent_mask(seq):
     ''' For masking out the subsequent info. '''
     sz_b, len_s = seq.size()
     subsequent_mask = (1 - torch.triu(
-        torch.ones((1, len_s, len_s), device=seq.device), diagonal=1)).bool()
+        torch.ones((1, len_s, len_s), device=seq.device), diagonal=1)).bool() #生成一个全是1的下三角矩阵
     return subsequent_mask
+
+#eg. 对于长度为4的序列，生成的掩码矩阵如下：（即序列的互相关矩阵）
+#[[True, False, False, False],
+# [True, True, False, False],
+# [True, True, True, False],
+# [True, True, True, True]]    #True表示"可以关注"，False表示"被掩盖" 
+# 这个掩码矩阵在解码器的自注意力机制中使用，确保位置 i 只能关注到位置 0 到位置 i，
+# 而不能看到位置 i+1 及之后的信息。这样就实现了自回归生成的效果，模拟了推理时一个接一个生成词的过程。
+
 
 
 class PositionalEncoding(nn.Module):
@@ -160,19 +169,19 @@ class Transformer(nn.Module):
         self.scale_prj = (scale_emb_or_prj == 'prj') if trg_emb_prj_weight_sharing else False
         self.d_model = d_model
 
-        self.encoder = Encoder(
+        self.encoder = Encoder(   #encoder
             n_src_vocab=n_src_vocab, n_position=n_position,
             d_word_vec=d_word_vec, d_model=d_model, d_inner=d_inner,
             n_layers=n_layers, n_head=n_head, d_k=d_k, d_v=d_v,
             pad_idx=src_pad_idx, dropout=dropout, scale_emb=scale_emb)
 
-        self.decoder = Decoder(
+        self.decoder = Decoder(   #decoder
             n_trg_vocab=n_trg_vocab, n_position=n_position,
             d_word_vec=d_word_vec, d_model=d_model, d_inner=d_inner,
             n_layers=n_layers, n_head=n_head, d_k=d_k, d_v=d_v,
             pad_idx=trg_pad_idx, dropout=dropout, scale_emb=scale_emb)
 
-        self.trg_word_prj = nn.Linear(d_model, n_trg_vocab, bias=False)
+        self.trg_word_prj = nn.Linear(d_model, n_trg_vocab, bias=False)  #线性层
 
         for p in self.parameters():
             if p.dim() > 1:
