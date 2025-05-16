@@ -5,11 +5,9 @@ import numpy as np
 from transformer.Layers import EncoderLayer, DecoderLayer
 
 
-__author__ = "Yu-Hsiang Huang"
-
 
 def get_pad_mask(seq, pad_idx):
-    return (seq != pad_idx).unsqueeze(-2)
+    return (seq != pad_idx).unsqueeze(-2) 
 
 
 def get_subsequent_mask(seq):
@@ -21,6 +19,7 @@ def get_subsequent_mask(seq):
 
 
 class PositionalEncoding(nn.Module):
+    #位置编码
 
     def __init__(self, d_hid, n_position=200):
         super(PositionalEncoding, self).__init__()
@@ -129,11 +128,18 @@ class Transformer(nn.Module):
     ''' A sequence to sequence model with attention mechanism. '''
 
     def __init__(
-            self, n_src_vocab, n_trg_vocab, src_pad_idx, trg_pad_idx,
-            d_word_vec=512, d_model=512, d_inner=2048,
-            n_layers=6, n_head=8, d_k=64, d_v=64, dropout=0.1, n_position=200,
-            trg_emb_prj_weight_sharing=True, emb_src_trg_weight_sharing=True,
-            scale_emb_or_prj='prj'):
+            self, 
+            n_src_vocab, n_trg_vocab, #源语言和目标语言的词汇表大小
+            src_pad_idx, trg_pad_idx, #填充标记的索引
+            d_word_vec=512, d_model=512, #词向量和模型维度（默认512）
+            d_inner=2048,       #前馈网络的隐藏层维度（默认2048）
+            n_layers=6,         #编码器和解码器的层数（默认6）
+            n_head=8,           #注意力头的数量（默认8）
+            d_k=64, d_v=64,     #注意力机制的键和值的维度（默认64）
+            dropout=0.1, n_position=200,#防止过拟合丢弃10%神经元，位置编码最大长度200
+            trg_emb_prj_weight_sharing=True, #目标词嵌入和输出投影层之间的共享
+            emb_src_trg_weight_sharing=True, #源语言和目标语言词嵌入层之间的共享
+            scale_emb_or_prj='prj'):#emb 在嵌入层乘sqrt（dmodel）,prj投影层乘sqrt（dmodel）^-1
 
         super().__init__()
 
